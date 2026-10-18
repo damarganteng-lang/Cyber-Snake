@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cyber Snake</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #0b1d16;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #e8f5e9;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .panel {
+      background: rgba(10, 30, 22, .72);
+      border: 1px solid rgba(160, 230, 180, .3);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    #hud {
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      left: 10px;
+      width: 210px;
+      font-size: 12px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+    }
+
+    .row .n {
+      width: 78px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .bar {
+      flex: 1;
+      height: 10px;
+      background: rgba(255, 255, 255, .12);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: 6px;
+    }
+
+    .row b {
+      width: 26px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    #info {
+      margin-top: 6px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #help {
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      right: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    #pad {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      justify-content: space-between;
+      padding: 0 16px;
+      pointer-events: none;
+    }
+
+    #pad .g {
+      display: flex;
+      gap: 14px;
+    }
+
+    #pad button {
+      pointer-events: auto;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      font-size: 26px;
+      color: #e8f5e9;
+      background: rgba(10, 30, 22, .65);
+      border: 2px solid rgba(160, 230, 180, .45);
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    #pad button.on {
+      background: rgba(60, 140, 90, .85);
+    }
+
+    #over {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, .55);
+      text-align: center;
+    }
+
+    #over h1 {
+      margin: 0;
+      font-size: 34px;
+    }
+
+    #over button {
+      font: inherit;
+      font-size: 16px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      border: 0;
+      background: #43a047;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .btn {
+      font: inherit;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(160, 230, 180, .4);
+      background: rgba(40, 90, 60, .8);
+      color: #e8f5e9;
+      cursor: pointer;
+    }
+
+    #openpick {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    #hud {
+      width: 236px;
+    }
+
+    .row .n {
+      width: 96px;
+    }
+
+    #pick {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .6);
+      z-index: 5;
+      padding: 12px;
+      overflow: auto;
+    }
+
+    #pick .box {
+      background: #10281e;
+      border: 1px solid rgba(160, 230, 180, .35);
+      border-radius: 14px;
+      padding: 18px;
+      max-width: 460px;
+      width: 100%;
+      max-height: 100%;
+      overflow: auto;
+    }
+
+    #pick h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    #species {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .sp {
+      text-align: left;
+      font: inherit;
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid rgba(160, 230, 180, .25);
+      background: rgba(255, 255, 255, .05);
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .sp.sel {
+      border-color: #66bb6a;
+      background: rgba(102, 187, 106, .18);
+    }
+
+    .sp b {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+
+    .sp span {
+      opacity: .75;
+      font-size: 12px;
+    }
+
+    .colors {
+      display: flex;
+      gap: 16px;
+      margin: 14px 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .colors label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .colors input {
+      width: 44px;
+      height: 32px;
+      border: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+    }
+
+    #go {
+      width: 100%;
+      padding: 11px;
+      font: inherit;
+      font-size: 16px;
+      background: #43a047;
+      border: 0;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 700px) {
+      #help {
+        display: none;
+      }
+    }
+
+    .btns {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btns .btn {
+      flex: 1;
+      padding: 6px 4px;
+    }
+
+    #banner {
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      z-index: 2;
+      white-space: nowrap;
+      max-width: 46vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #mini {
+      position: fixed;
+      right: 10px;
+      top: 160px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(10, 30, 22, .72);
+      border: 1px solid rgba(160, 230, 180, .3);
+    }
+
+    #over button+button {
+      margin-left: 6px;
+    }
+
+    @media (max-width: 700px) {
+      #banner {
+        top: auto;
+        bottom: 100px;
+        max-width: 90vw;
+      }
+
+      #mini {
+        top: calc(10px + env(safe-area-inset-top, 0px));
+        width: 96px;
+        height: 96px;
+      }
+    }
+
+    .logo {
+      font-family: "Orbitron", "Segoe UI", system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 34px;
+      letter-spacing: 4px;
+      text-align: center;
+      color: #7dffb0;
+      text-shadow: 0 0 6px #00ffa3, 0 0 18px #00e5ff;
+      animation: neon 2.6s ease-in-out infinite;
+    }
+
+    .logo span {
+      color: #ff4fe0;
+      text-shadow: 0 0 6px #ff2bd6, 0 0 18px #b388ff;
+    }
+
+    @keyframes neon {
+
+      0%,
+      100% {
+        filter: brightness(1);
+      }
+
+      50% {
+        filter: brightness(1.35);
+      }
+    }
+
+    .tag {
+      text-align: center;
+      font-size: 12px;
+      opacity: .75;
+      margin: 4px 0 16px;
+      letter-spacing: 1px;
+    }
+
+    #pick .box {
+      box-shadow: 0 0 30px rgba(0, 229, 255, .2);
+    }
+
+    .nm {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .nm input {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(160, 230, 180, .4);
+      background: rgba(255, 255, 255, .06);
+      color: #e8f5e9;
+    }
+
+    .nm input:focus {
+      outline: 2px solid #00e5ff;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="hud" class="panel">
+    <div id="rows"></div>
+    <div id="info"><span id="score">Skor: 0</span><span id="buff"></span></div>
+    <div class="btns"><button class="btn" id="newmatch">↻ Ulang</button><button class="btn"
+        id="music">🎵</button><button class="btn" id="mute">🔊</button></div>
+    <button class="btn" id="openpick">🎨 Ganti ular</button>
+  </div>
+  <div id="help" class="panel">A/D atau ←/→ : belok<br>Spasi/Shift : boost<br>V : ganti kamera · R : ulang<br>🍎 +12
+    darah · 🧪 +25 darah &amp; cepat<br>Menyentuh badan ular lain = kena damage</div>
+  <div id="pad">
+    <div class="g"><button id="bl">◀</button><button id="br">▶</button></div>
+    <div class="g"><button id="bb">⚡</button></div>
+  </div>
+  <div id="pick">
+    <div class="box">
+      <div class="logo">CYBER <span>SNAKE</span></div>
+      <div class="tag">ARENA BERTAHAN HIDUP 10 ULAR</div>
+      <label class="nm">Nama ularmu <input id="pname" maxlength="14" placeholder="Contoh: Naga Neon"
+          autocomplete="off"></label>
+      <h2>Pilih jenis ular</h2>
+      <div id="species"></div>
+      <div class="colors">
+        <label>Warna utama <input type="color" id="c1" value="#2e9e4f"></label>
+        <label>Warna pola <input type="color" id="c2" value="#d8c24a"></label>
+      </div>
+      <div id="prev" style="height:16px;border-radius:8px;margin-bottom:14px"></div>
+      <button id="go">▶ MULAI</button>
+    </div>
+  </div>
+  <div id="banner" class="panel"></div>
+  <canvas id="mini" width="120" height="120"></canvas>
+  <div id="over">
+    <h1 id="otitle">Game Over</h1>
+    <div id="final"></div><button id="again">Main lagi</button><button class="btn" id="spec">Tonton</button><button
+      class="btn" id="again2">Ganti ular</button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    (function () {
+      const R = 48, SP = 0.38;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0b1d16);
+      scene.fog = new THREE.Fog(0x0b1d16, 28, 78);
+      const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.shadowMap.enabled = true;
+      document.body.appendChild(renderer.domElement);
+
+      scene.add(new THREE.HemisphereLight(0xbfe9ff, 0x2a3b1f, 0.75));
+      const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+      sun.position.set(8, 16, 6);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(2048, 2048);
+      Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26 });
+      scene.add(sun); scene.add(sun.target);
+
+      const ground = new THREE.Mesh(new THREE.CircleGeometry(R + 1, 64), new THREE.MeshStandardMaterial({ color: 0x3b5a3a, roughness: 1 }));
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+      const grid = new THREE.GridHelper(98, 98, 0x5d8a5c, 0x4a704a);
+      grid.position.y = 0.01;
+      grid.material.transparent = true; grid.material.opacity = 0.2;
+      scene.add(grid);
+      const wall = new THREE.Mesh(new THREE.TorusGeometry(R, 0.25, 8, 96), new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+      wall.rotation.x = Math.PI / 2; wall.position.y = 0.25;
+      scene.add(wall);
+
+      const wrap = a => ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+      const snakes = [];
+
+      const SPECIES = {
+        viper: { label: 'Ular Hijau', desc: 'Ramping, cepat, lincah', N: 26, thick: 0.85, speed: 5.6, turn: 3.1, dmg: 1.15, pat: (i, a, b) => i % 6 < 3 ? a : b },
+        python: { label: 'Piton', desc: 'Panjang, tebal, tahan banting, lambat', N: 38, thick: 1.3, speed: 4.4, turn: 2.2, dmg: 0.75, pat: (i, a, b) => i % 9 < 5 ? a : b },
+        cobra: { label: 'Kobra', desc: 'Berkerudung lebar, seimbang', N: 30, thick: 1, speed: 5, turn: 2.7, dmg: 1, hood: true, pat: (i, a, b) => i % 2 ? a : b },
+        coral: { label: 'Ular Karang', desc: 'Pendek, belang, gesit', N: 22, thick: 0.8, speed: 5.3, turn: 3.0, dmg: 1, pat: (i, a, b) => [a, b, a, new THREE.Color(0x111111)][i % 4] }
+      };
+      class Snake {
+        constructor(name, c1, c2, player, spKey) {
+          const sp = SPECIES[spKey] || SPECIES.viper;
+          this.sp = sp; this.spKey = spKey;
+          Object.assign(this, { name, player, N: sp.N, score: 0, turn: sp.turn, speed: sp.speed, hp: 100, buff: 0, cd: 0, hitT: 0, dead: false, deadT: 0, heading: 0 });
+          this.group = new THREE.Group(); scene.add(this.group);
+          this.segs = []; this.pos = []; this.r = [];
+          const a = new THREE.Color(c1), b = new THREE.Color(c2);
+          for (let i = 0; i < this.N; i++) {
+            const r = (i === 0 ? 0.55 : 0.45 * Math.pow(1 - i / this.N, 0.5) + 0.06) * sp.thick;
+            const hw = sp.hood ? [1, 1, 1.7, 2.1, 1.6][i] || 1 : 1;
+            const m = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12), new THREE.MeshStandardMaterial({ color: sp.pat(i, a, b), roughness: 0.45, metalness: 0.1 }));
+            m.scale.set(r * hw, hw > 1 ? r * 0.75 : r, r); m.castShadow = true;
+            this.group.add(m); this.segs.push(m); this.r.push(r); this.pos.push(new THREE.Vector3());
+          }
+          this.color = '#' + a.getHexString();
+          const head = this.segs[0];
+          head.scale.set(0.65 * sp.thick, 0.55 * sp.thick, 0.85 * sp.thick);
+          [-1, 1].forEach(s => {
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), new THREE.MeshStandardMaterial({ color: 0xfff8e1 }));
+            eye.position.set(s * 0.65, 0.55, 0.55);
+            const pup = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+            pup.position.z = 0.13; eye.add(pup); head.add(eye);
+          });
+          this.tongue = new THREE.Group();
+          const tm = new THREE.MeshStandardMaterial({ color: 0xd32f2f });
+          const base = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.9), tm); base.position.z = 0.45; this.tongue.add(base);
+          [-1, 1].forEach(s => { const f = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.4), tm); f.position.set(s * 0.12, 0, 1.0); f.rotation.y = s * 0.45; this.tongue.add(f); });
+          this.tongue.position.set(0, -0.2, 1.0); head.add(this.tongue);
+          this.respawn();
+        }
+        respawn() {
+          const a = Math.random() * Math.PI * 2, d = 4 + Math.random() * (R - 20);
+          const x = Math.sin(a) * d, z = Math.cos(a) * d;
+          this.heading = Math.atan2(-x, -z);
+          this.hp = 100; this.buff = 0; this.cd = 1.5; this.hitT = 0; this.dead = false; this.group.visible = true;
+          for (let i = 0; i < this.N; i++) this.pos[i].set(x - Math.sin(this.heading) * SP * i, 0, z - Math.cos(this.heading) * SP * i);
+        }
+        hurt(a) { if (this.cd > 0 || this.dead) return false; this.hp -= a * this.sp.dmg; this.cd = 0.8; this.hitT = 0.3; sound('hit', this.pos[0].x, this.pos[0].z, this.player); return true; }
+        die() {
+          this.rank = snakes.filter(s => !s.dead).length;
+          this.dead = true; this.deadT = 0; this.group.visible = false;
+          if (this.lastBy && !this.lastBy.dead) this.lastBy.score += 50;
+          sound('die', this.pos[0].x, this.pos[0].z, this.player);
+          announce(this.name + ' tereliminasi' + (this.lastBy ? ' oleh ' + this.lastBy.name : ''));
+          if (this.player) showOver(false);
+        }
+        update(dt, steer, boost) {
+          this.cd = Math.max(0, this.cd - dt); this.hitT = Math.max(0, this.hitT - dt);
+          if (this.dead) { this.deadT += dt; return; }
+          this.heading += steer * this.turn * dt;
+          const sp = this.speed * (boost ? 1.6 : 1) * (this.buff > 0 ? 1.4 : 1);
+          this.buff = Math.max(0, this.buff - dt);
+          this.hp -= (1.5 + (boost ? 5 : 0)) * dt;
+          const h = this.pos[0];
+          h.x += Math.sin(this.heading) * sp * dt; h.z += Math.cos(this.heading) * sp * dt;
+          const d = Math.hypot(h.x, h.z);
+          if (d > R - 0.6) { h.x *= (R - 0.6) / d; h.z *= (R - 0.6) / d; this.heading = Math.atan2(-h.x, -h.z); this.hurt(4); }
+          for (let i = 1; i < this.N; i++) {
+            const p = this.pos[i], q = this.pos[i - 1];
+            const dx = p.x - q.x, dz = p.z - q.z, L = Math.hypot(dx, dz) || 1;
+            p.x = q.x + dx / L * SP; p.z = q.z + dz / L * SP;
+          }
+        }
+        render(t) {
+          for (let i = 0; i < this.N; i++) {
+            const p = this.pos[i], m = this.segs[i];
+            let dx, dz;
+            if (i === 0) { dx = Math.sin(this.heading); dz = Math.cos(this.heading); }
+            else { dx = (this.pos[i - 1].x - p.x) / SP; dz = (this.pos[i - 1].z - p.z) / SP; }
+            const w = i === 0 ? 0 : 0.22 * Math.sin(t * 7 - i * 0.6) * Math.min(1, i / 5);
+            m.position.set(p.x + dz * w, this.r[i] * (i ? 1 : 0.75), p.z - dx * w);
+            if (i) m.rotation.y = Math.atan2(dx, dz);
+            m.material.emissive.setHex(this.hitT > 0 ? 0x990000 : (this.buff > 0 ? 0x113355 : 0));
+          }
+          this.segs[0].rotation.y = this.heading;
+          this.tongue.scale.z = 0.3 + 0.7 * Math.abs(Math.sin(t * 6));
+        }
+      }
+
+      const AI_DEFS = [
+        ['Oranye', 0xe65100, 0xffcc80, 'cobra'], ['Ungu', 0x7b1fa2, 0xce93d8, 'python'],
+        ['Merah', 0xc62828, 0x212121, 'coral'], ['Biru', 0x1565c0, 0x90caf9, 'viper'],
+        ['Kuning', 0xf9a825, 0x5d4037, 'cobra'], ['Hitam', 0x263238, 0x90a4ae, 'python'],
+        ['Pink', 0xd81b60, 0xf8bbd0, 'viper'], ['Cokelat', 0x6d4c41, 0xffe0b2, 'coral'],
+        ['Tosca', 0x00897b, 0xb2dfdb, 'viper']
+      ];
+      let saved = { sp: 'viper', c1: '#2e9e4f', c2: '#d8c24a', name: '' };
+      try { Object.assign(saved, JSON.parse(localStorage.getItem('snake3d') || '{}')); } catch (e) { }
+      if (!SPECIES[saved.sp]) saved.sp = 'viper';
+      if (typeof saved.name !== 'string') saved.name = '';
+      if (!/^#[0-9a-f]{6}$/i.test(saved.c1)) saved.c1 = '#2e9e4f';
+      if (!/^#[0-9a-f]{6}$/i.test(saved.c2)) saved.c2 = '#d8c24a';
+      let player = new Snake(saved.name.trim().slice(0, 14) || 'Kamu', saved.c1, saved.c2, true, saved.sp);
+      snakes.push(player,
+        ...AI_DEFS.map(d => new Snake('Lawan ' + d[0], d[1], d[2], false, d[3])));
+
+
+      // Makanan dan minuman
+      const items = [];
+      function makeItem(type) {
+        const g = new THREE.Group();
+        if (type === 'apple') {
+          const a = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe53935, emissive: 0x4a0000, roughness: 0.4 }));
+          a.position.y = 0.45; a.castShadow = true; g.add(a);
+          const s = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0x5d4037 })); s.position.y = 0.85; g.add(s);
+          const l = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshStandardMaterial({ color: 0x66bb6a })); l.scale.set(1.6, 0.3, 0.8); l.position.set(0.12, 0.88, 0); g.add(l);
+        } else {
+          const b = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.65, 14), new THREE.MeshStandardMaterial({ color: 0x29b6f6, emissive: 0x0277bd, emissiveIntensity: 0.6, transparent: true, opacity: 0.85 }));
+          b.position.y = 0.5; b.castShadow = true; g.add(b);
+          const c = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.18, 10), new THREE.MeshStandardMaterial({ color: 0xeeeeee })); c.position.y = 0.92; g.add(c);
+        }
+        scene.add(g);
+        const it = { type, mesh: g, ph: Math.random() * 6 };
+        spawn(it); items.push(it);
+      }
+      function spawn(it) {
+        const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * (R - 2.5);
+        it.x = Math.sin(a) * d; it.z = Math.cos(a) * d; it.mesh.position.set(it.x, 0, it.z);
+      }
+      for (let i = 0; i < 34; i++) makeItem('apple');
+      for (let i = 0; i < 12; i++) makeItem('drink');
+
+      // AI
+      function ai(s) {
+        const h = s.pos[0];
+        let best = null, bd = 1e9;
+        items.forEach(it => {
+          let d = Math.hypot(it.x - h.x, it.z - h.z);
+          if (it.type === 'drink' && s.hp < 55) d *= 0.4;
+          if (d < bd) { bd = d; best = it; }
+        });
+        let want = Math.atan2(best.x - h.x, best.z - h.z);
+        let atk = false;
+        if (false) {
+          let tb = 1e9, tx = 0, tz = 0;
+          snakes.forEach(o => {
+            if (o === s || o.dead) return;
+            for (let j = 2; j < o.N; j += 3) { const d = Math.hypot(o.pos[j].x - h.x, o.pos[j].z - h.z); if (d < tb) { tb = d; tx = o.pos[j].x; tz = o.pos[j].z; } }
+          });
+          if (tb < 12) { want = Math.atan2(tx - h.x, tz - h.z); atk = true; }
+        }
+        if (Math.hypot(h.x, h.z) > R - 3.5) { want = Math.atan2(-h.x, -h.z); atk = false; }
+        const fx = h.x + Math.sin(s.heading) * 2, fz = h.z + Math.cos(s.heading) * 2;
+        snakes.forEach(o => {
+          if (o === s || o.dead) return;
+          if (!atk) for (let j = 0; j < o.N; j += 2) if (Math.hypot(o.pos[j].x - fx, o.pos[j].z - fz) < 1.3) { want = s.heading + Math.PI / 2; break; }
+        });
+        return Math.max(-1, Math.min(1, wrap(want - s.heading) * 3));
+      }
+
+      // Kontrol
+      const keys = {}, touch = { l: false, r: false, b: false };
+      let camMode = 0;
+      addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT') return;
+        const k = e.key.toLowerCase(); keys[k] = true;
+        if (!paused && ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
+        if (k === 'v') camMode = 1 - camMode;
+        if (k === 'r') restart();
+      });
+      addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+      [['bl', 'l'], ['br', 'r'], ['bb', 'b']].forEach(([id, k]) => {
+        const el = document.getElementById(id);
+        const on = e => { e.preventDefault(); touch[k] = true; el.classList.add('on'); };
+        const off = () => { touch[k] = false; el.classList.remove('on'); };
+        el.addEventListener('pointerdown', on);
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => el.addEventListener(ev, off));
+      });
+
+      // HUD
+      const rows = document.getElementById('rows');
+      snakes.forEach(s => {
+        const r = document.createElement('div'); r.className = 'row';
+        r.innerHTML = '<span class="n"></span><div class="bar"><i></i></div><b></b>';
+        r.querySelector('.n').textContent = s.name; r.querySelector('.n').style.color = s.color;
+        rows.appendChild(r); s.row = r;
+      });
+      const over = document.getElementById('over');
+      let matchOver = false, evMsg = '', evUntil = 0;
+      const banner = document.getElementById('banner'), mctx = document.getElementById('mini').getContext('2d');
+      function announce(m, sec) { evMsg = m; evUntil = performance.now() + (sec || 4) * 1000; }
+      function clash(a, b) { sound('attack', a.pos[0].x, a.pos[0].z, a.player || b.player); }
+      function showOver(win) {
+        document.getElementById('otitle').textContent = win ? 'Kamu Menang!' : 'Tereliminasi';
+        document.getElementById('final').textContent = (win ? 'Ular terakhir yang bertahan. ' : 'Peringkat #' + player.rank + ' dari ' + snakes.length + '. ') + 'Skor: ' + player.score;
+        document.getElementById('spec').style.display = win ? 'none' : '';
+        over.style.display = 'flex';
+      }
+
+      // Suara (WebAudio, tanpa file)
+      let actx = null, muted = false;
+      function audio() {
+        if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } }
+        if (actx && actx.state === 'suspended') actx.resume();
+      }
+      ['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, audio));
+
+      // Musik latar bertema synthwave bersemangat (komposisi sendiri, disintesis langsung)
+      let mbus = null, mTimer = null, mStep = 0, mNext = 0, musicOn = true, noiseBuf = null;
+      const BPM = 144, STEP = 60 / BPM / 4;
+      const MIDI = m => 440 * Math.pow(2, (m - 69) / 12);
+      const CH = [{ b: 45, t: [57, 60, 64] }, { b: 41, t: [53, 57, 60] }, { b: 48, t: [60, 64, 67] }, { b: 43, t: [55, 59, 62] }];
+      const ARP = [0, 1, 2, 3, 2, 1, 2, 3, 0, 1, 2, 3, 2, 1, 2, 3];
+      const LEAD = [
+        [[0, 76, 3], [3, 76, 1], [4, 79, 2], [8, 76, 2], [10, 72, 2], [12, 74, 4]],
+        [[0, 77, 3], [3, 77, 1], [4, 76, 2], [8, 72, 2], [10, 69, 2], [12, 72, 4]],
+        [[0, 79, 3], [3, 79, 1], [4, 84, 2], [8, 79, 2], [10, 76, 2], [12, 74, 4]],
+        [[0, 74, 2], [2, 76, 2], [4, 79, 2], [6, 76, 2], [8, 74, 4], [12, 71, 4]]
+      ];
+      function mnote(m, t, dur, type, vol, cut) {
+        const o = actx.createOscillator(), g = actx.createGain(), f = actx.createBiquadFilter();
+        o.type = type; o.frequency.value = MIDI(m); f.type = 'lowpass'; f.frequency.value = cut;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(f); f.connect(g); g.connect(mbus); o.start(t); o.stop(t + dur + 0.02);
+      }
+      function mkick(t) {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.13);
+        g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        o.connect(g); g.connect(mbus); o.start(t); o.stop(t + 0.2);
+      }
+      function mnoise(t, dur, vol, type, freq) {
+        const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+        s.buffer = noiseBuf; f.type = type; f.frequency.value = freq;
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        s.connect(f); f.connect(g); g.connect(mbus); s.start(t); s.stop(t + dur + 0.02);
+      }
+      function mstep(i, t) {
+        const bar = Math.floor(i / 16) % 4, s = i % 16, c = CH[bar], loop = Math.floor(i / 64);
+        if (s % 4 === 0) mkick(t);
+        if (s === 4 || s === 12) { mnoise(t, 0.14, 0.5, 'bandpass', 1800); mnote(55, t, 0.1, 'triangle', 0.25, 1500); }
+        if (s % 4 === 2) mnoise(t, 0.06, 0.2, 'highpass', 7000); else if (s % 2 === 1) mnoise(t, 0.02, 0.08, 'highpass', 9000);
+        if (s % 2 === 0) mnote(c.b + (s % 8 === 6 ? 12 : 0), t, STEP * 1.8, 'sawtooth', 0.32, 700);
+        const ai = ARP[s];
+        mnote((ai === 3 ? c.t[0] + 12 : c.t[ai]) + 12, t, STEP * 0.9, 'square', 0.07, 2800);
+        if (loop >= 1) LEAD[bar].forEach(n => { if (n[0] === s) mnote(n[1], t, STEP * n[2], 'sawtooth', 0.11, 3500); });
+      }
+      function musicTick() {
+        if (mNext < actx.currentTime) mNext = actx.currentTime + 0.05;
+        while (mNext < actx.currentTime + 0.2) { mstep(mStep, mNext); mStep++; mNext += STEP; }
+      }
+      function setMusicVol() { if (mbus) mbus.gain.setTargetAtTime(musicOn && !muted ? 0.3 : 0, actx.currentTime, 0.05); }
+      function startMusic() {
+        if (!actx || mTimer) return;
+        if (!mbus) {
+          const comp = actx.createDynamicsCompressor();
+          mbus = actx.createGain(); mbus.gain.value = musicOn && !muted ? 0.3 : 0;
+          mbus.connect(comp); comp.connect(actx.destination);
+          noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+          const d = noiseBuf.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        }
+        mNext = actx.currentTime + 0.1;
+        mTimer = setInterval(musicTick, 25);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!actx) return;
+        if (document.hidden) actx.suspend(); else actx.resume();
+      });
+      function tone(f1, f2, dur, type, vol) {
+        const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime;
+        o.type = type; o.frequency.setValueAtTime(f1, t0); o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+        g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+        o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0 + dur);
+      }
+      function noise(dur, vol, freq) {
+        const n = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+        const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+        s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; g.gain.value = vol;
+        s.connect(f); f.connect(g); g.connect(actx.destination); s.start();
+      }
+      function sound(kind, x, z, mine) {
+        if (muted || !actx) return;
+        const h = player.pos[0];
+        const v = mine ? 1 : Math.max(0, 1 - Math.hypot(x - h.x, z - h.z) / 30) * 0.5;
+        if (v < 0.05) return;
+        if (kind === 'hit') { tone(220, 50, 0.25, 'sawtooth', 0.35 * v); noise(0.15, 0.5 * v, 400); }
+        else if (kind === 'attack') { tone(500, 1000, 0.12, 'square', 0.18 * v); noise(0.08, 0.4 * v, 2500); }
+        else { tone(300, 40, 0.7, 'triangle', 0.4 * v); noise(0.4, 0.4 * v, 300); }
+      }
+      function restart() { snakes.forEach(s => { s.score = 0; s.lastBy = null; s.respawn(); }); matchOver = false; over.style.display = 'none'; }
+      document.getElementById('again').onclick = restart;
+
+      // Pemilihan jenis dan warna ular
+      let paused = true;
+      const pick = document.getElementById('pick'), c1el = document.getElementById('c1'), c2el = document.getElementById('c2');
+      const prev = document.getElementById('prev'), spBox = document.getElementById('species');
+      let selSp = saved.sp;
+      c1el.value = saved.c1; c2el.value = saved.c2;
+      document.getElementById('pname').value = saved.name;
+      function preview() { prev.style.background = 'repeating-linear-gradient(90deg,' + c1el.value + ' 0 22px,' + c2el.value + ' 22px 44px)'; }
+      function markSel() { spBox.querySelectorAll('.sp').forEach(b => b.classList.toggle('sel', b.dataset.k === selSp)); }
+      Object.keys(SPECIES).forEach(k => {
+        const b = document.createElement('button'); b.className = 'sp'; b.dataset.k = k;
+        b.innerHTML = '<b></b><span></span>';
+        b.firstChild.textContent = SPECIES[k].label; b.lastChild.textContent = SPECIES[k].desc;
+        b.onclick = () => { selSp = k; markSel(); };
+        spBox.appendChild(b);
+      });
+      markSel(); preview();
+      c1el.oninput = c2el.oninput = preview;
+      document.getElementById('pname').onkeydown = e => { if (e.key === 'Enter') document.getElementById('go').click(); };
+      const openPick = () => { paused = true; over.style.display = 'none'; pick.style.display = 'flex'; };
+      document.getElementById('openpick').onclick = openPick;
+      document.getElementById('again2').onclick = openPick;
+      document.getElementById('newmatch').onclick = restart;
+      document.getElementById('spec').onclick = () => { over.style.display = 'none'; };
+      const muteBtn = document.getElementById('mute');
+      const musicBtn = document.getElementById('music');
+      musicBtn.onclick = () => { musicOn = !musicOn; musicBtn.style.opacity = musicOn ? 1 : 0.45; setMusicVol(); };
+      muteBtn.onclick = () => { muted = !muted; setMusicVol(); muteBtn.textContent = muted ? '🔇' : '🔊'; };
+      addEventListener('keydown', e => { if (e.target.tagName !== 'INPUT' && e.key.toLowerCase() === 'm') muteBtn.click(); });
+      document.getElementById('go').onclick = () => {
+        const old = player;
+        scene.remove(old.group);
+        const pn = document.getElementById('pname').value.trim().slice(0, 14) || 'Kamu';
+        const np = new Snake(pn, c1el.value, c2el.value, true, selSp);
+        np.row = old.row; np.row.querySelector('.n').style.color = np.color; np.row.querySelector('.n').textContent = pn;
+        snakes[0] = np; player = np;
+        saved = { sp: selSp, c1: c1el.value, c2: c2el.value, name: pn };
+        try { localStorage.setItem('snake3d', JSON.stringify(saved)); } catch (e) { }
+        if (document.activeElement) document.activeElement.blur();
+        audio(); startMusic();
+        restart(); pick.style.display = 'none'; paused = false;
+      };
+
+      addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight);
+      });
+
+      const look = new THREE.Vector3(), tmp = new THREE.Vector3();
+      camera.position.set(0, 7, -9);
+      let last = performance.now();
+      function loop(now) {
+        const dt = paused ? 0 : Math.min((now - last) / 1000, 0.05); last = now;
+        const t = now / 1000;
+
+        snakes.forEach(s => {
+          if (s.player) {
+            const steer = ((keys['a'] || keys['arrowleft'] || touch.l) ? 1 : 0) - ((keys['d'] || keys['arrowright'] || touch.r) ? 1 : 0);
+            s.update(dt, steer, !!(keys[' '] || keys['shift'] || touch.b));
+          } else {
+
+            s.update(dt, s.dead ? 0 : ai(s), false);
+          }
+        });
+
+        // Tabrakan antar ular
+        snakes.forEach(a => {
+          if (a.dead) return;
+          const h = a.pos[0];
+          snakes.forEach(b => {
+            if (a === b || b.dead) return;
+            if (Math.hypot(h.x - b.pos[0].x, h.z - b.pos[0].z) < 0.9) {
+              if (a.hurt(10)) { a.heading = Math.atan2(h.x - b.pos[0].x, h.z - b.pos[0].z); clash(a, b); }
+              return;
+            }
+            for (let j = 3; j < b.N; j++) {
+              const p = b.pos[j];
+              if (Math.hypot(h.x - p.x, h.z - p.z) < 0.5 + b.r[j]) {
+                if (a.hurt(15)) { a.heading = Math.atan2(h.x - p.x, h.z - p.z); a.lastBy = b; b.score += 5; clash(a, b); }
+                break;
+              }
+            }
+          });
+          // Ambil makanan / minuman
+          items.forEach(it => {
+            if (Math.hypot(h.x - it.x, h.z - it.z) < 0.95) {
+              if (it.type === 'apple') { a.hp = Math.min(100, a.hp + 12); a.score += 10; }
+              else { a.hp = Math.min(100, a.hp + 25); a.buff = 6; a.score += 20; }
+              spawn(it);
+            }
+          });
+          if (a.hp <= 0) a.die();
+        });
+
+        snakes.forEach(s => {
+          s.render(t);
+          s.row.style.opacity = s.dead ? 0.35 : 1;
+          const hp = Math.max(0, s.hp), bar = s.row.querySelector('i');
+          bar.style.width = hp + '%'; bar.style.background = 'hsl(' + (hp * 1.2) + ',70%,45%)';
+          s.row.querySelector('b').textContent = Math.ceil(hp);
+        });
+        items.forEach(it => { it.mesh.position.y = 0.12 + 0.1 * Math.sin(t * 2.5 + it.ph); it.mesh.rotation.y = t + it.ph; });
+        document.getElementById('score').textContent = 'Skor: ' + player.score;
+        const alive = snakes.filter(s => !s.dead);
+        if (!matchOver && alive.length <= 1) { matchOver = true; if (alive[0] === player) showOver(true); else announce(alive[0] ? 'Pemenang: ' + alive[0].name : 'Seri', 15); }
+        banner.textContent = 'Tersisa ' + alive.length + '/' + snakes.length + (player.dead && alive[0] && !matchOver ? ' · Menonton ' + alive[0].name : '') + (now < evUntil ? ' · ' + evMsg : '');
+        mctx.clearRect(0, 0, 120, 120);
+        const msc = 56 / R;
+        items.forEach(it => { mctx.fillStyle = it.type === 'apple' ? '#ef5350' : '#4fc3f7'; mctx.fillRect(60 + it.x * msc - 1, 60 + it.z * msc - 1, 2, 2); });
+        alive.forEach(s => { mctx.fillStyle = s.color; mctx.beginPath(); mctx.arc(60 + s.pos[0].x * msc, 60 + s.pos[0].z * msc, s.player ? 4 : 3, 0, 7); mctx.fill(); if (s.player) { mctx.strokeStyle = '#fff'; mctx.lineWidth = 1.5; mctx.stroke(); } });
+        document.getElementById('buff').textContent = player.buff > 0 ? '🧪 Cepat ' + player.buff.toFixed(1) + 'd' : '';
+
+        // Kamera
+        const ct = player.dead ? (snakes.find(s => !s.dead) || player) : player;
+        const h = ct.pos[0], fx = Math.sin(ct.heading), fz = Math.cos(ct.heading);
+        if (camMode === 0) tmp.set(h.x - fx * 9, 7, h.z - fz * 9); else tmp.set(h.x, 38, h.z - 10);
+        camera.position.lerp(tmp, 1 - Math.exp(-5 * dt));
+        look.lerp(tmp.set(h.x + fx * 3, 0, h.z + fz * 3), 1 - Math.exp(-8 * dt));
+        camera.lookAt(look);
+
+        sun.position.set(h.x + 8, 16, h.z + 6); sun.target.position.set(h.x, 0, h.z); sun.target.updateMatrixWorld();
+        renderer.render(scene, camera);
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+
+</html>
